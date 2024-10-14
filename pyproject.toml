@@ -1,0 +1,15 @@
+[project]
+name = "probsafety"
+version = "0.1.0"
+description = "Default template for PDM package"
+authors = [
+    {name = "Shengjie Xu", email = "shengjiex98@gmail.com"},
+]
+dependencies = []
+requires-python = ">=3.8"
+readme = "README.md"
+license = {text = "MIT"}
+
+
+[tool.pdm]
+distribution = false
