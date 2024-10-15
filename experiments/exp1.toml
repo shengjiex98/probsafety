@@ -1,0 +1,24 @@
+experiment_name = "Linear - F1 - jpeg"
+seed = 42
+
+[model]
+name = "F1"
+controller = "delay_lqr"
+period = 0.02
+time_horizon = 2.0
+
+[timing]
+mode = "synthetic"
+
+[timing.measurement]
+path = "data/picojpeg-emnist.json"
+cycles_per_second = 8_000_000
+
+[timing.synthetic]
+sample_size = 100_000
+distribution = "pareto"
+pareto = {shape = 1.5, scale = 0.01}
+normal = {mean = 0.01, std = 0.01}
+
+[experiment]
+batch_size = 300_000
