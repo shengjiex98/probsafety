@@ -1,26 +1,27 @@
 # Makefile
+PACKAGE_DIR = src/probsafety
+INSTALL_TIMESTAMP = .install-timestamp
 
 # Define the configuration file and output directory
-CONFIG=exp1.yaml
+SCRIPT=experiments/exp1.py
+CONFIG=experiments/exp1.toml
 RESULTS_DIR=results/exp1_$(shell date +%Y%m%d_%H%M)
 
-all: preprocess train evaluate
+all: install_package experiment1
 
-preprocess:
-	@echo "Preprocessing data..."
-	python preprocess.py --config $(CONFIG)
+install_package: $(INSTALL_TIMESTAMP)
 
-train: preprocess
-	@echo "Training model..."
-	mkdir -p $(RESULTS_DIR)
-	python experiment1.py --config $(CONFIG) --output_dir $(RESULTS_DIR)
+$(INSTALL_TIMESTAMP): $(shell find $(PACKAGE_DIR) -type f)
+	@echo "Installing package in editable mode..."
+	pip install -e .
+	@touch $(INSTALL_TIMESTAMP)
 
-evaluate: train
-	@echo "Evaluating model..."
-	python evaluate.py --results_dir $(RESULTS_DIR)
+experiment1:
+	@echo "Running experiment 1..."
+	python $(SCRIPT) --config $(CONFIG) --output $(RESULTS_DIR)
 
-clean:
-	@echo "Cleaning up..."
-	rm -rf results/*
+# clean:
+# 	@echo "Cleaning up..."
+# 	rm -rf results/*
 
-.PHONY: all preprocess train evaluate clean
+.PHONY: all install_package experiment1 clean
