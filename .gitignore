@@ -1,6 +1,9 @@
 # Timestamp for Makefile
 .install-timestamp
 
+# VS Workspace
+*.code-workspace
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
