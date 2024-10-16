@@ -4,9 +4,10 @@ import json
 import argparse
 import random
 import numpy as np
-import control as ct
+import control as ctrl
 
-from controlbenchmarks import models, controllers
+import controlbenchmarks as cbench
+from probsafety import utils, models
 
 def load_timing_measurements(path: str) -> np.ndarray:
     """Load timing data from a JSON file."""
@@ -20,11 +21,10 @@ def sample_synthetic_distribution(dist: str, params: dict, size: int) -> np.ndar
         "pareto": lambda params: (np.random.pareto(params["shape"], size) + 1) * params["scale"],
         "normal": lambda params: np.random.normal(params["mean"], params["std"], size)
     }
-    
     return distribution_mapping[dist](params)
 
 def main(config_path: str, output_path: str):
-    # Load configuration from yaml
+    # Load configuration from toml
     with open(config_path, "r") as file:
         config = toml.load(file)
 
@@ -34,9 +34,10 @@ def main(config_path: str, output_path: str):
     np.random.seed(seed)
 
     # Initialize model
-    # mc = config['model']
-    # system_model = models.sys_variables(mc['name'])
-    # period = mc['period']
+    mc = config['model']
+    system_model = cbench.models.sys_variables(mc['name'])
+    period = mc['period']
+    controller = models.DelayLQR(system_model, period) if mc['controller'] == 'delay_lqr' else models.PolePlacement(system_model, period)
 
     # Load timing measurements
     tc = config['timing']
@@ -56,6 +57,8 @@ def main(config_path: str, output_path: str):
     print(type(t), t.shape, np.sort(t))
 
     # Run experiment
+    ec = config['experiment']
+    nominal_trajector = utils.nominal_trajectory(system_model, period, ec['time_horizon'], ec['x0'], u_generator=controllers.delay_lqr)
 
     # Save results
 
