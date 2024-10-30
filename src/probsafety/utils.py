@@ -1,9 +1,8 @@
+from typing import Callable
+
 import numpy as np
 import scipy.integrate as integrate
 import control as ctrl
-from typing import Callable
-
-from .model import AbstractController
 
 
 def nominal_trajectory(
@@ -11,29 +10,21 @@ def nominal_trajectory(
         period: float,
         time_horizon: float,
         x0: np.ndarray,
-        u: AbstractController | None = None,
-        u_generator: (Callable[[ctrl.StateSpace, float], AbstractController] | None
-        ) = None) -> np.ndarray:
+        u: Callable[[np.ndarray, float], np.ndarray]) -> np.ndarray:
     """Compute the nominal trajectory of a system."""
 
-    # Ensure that exactly one of u or u_generator is provided
-    if (u is None and u_generator is None) or (u is not None and u_generator is not None):
-        raise ValueError("Exactly one of 'u' or 'u_generator' must be provided.")
-    elif u_generator is not None:
-        u = u_generator(sys, period)
-
     # Number of time steps
-    num_steps = int(time_horizon / period) + 1
+    nsteps = int(time_horizon / period) + 1
 
     # Initialize trajectory array
-    x_trajectory = np.zeros((num_steps, sys.nstates))
+    x_trajectory = np.zeros((nsteps, sys.nstates))
     x_trajectory[0, :] = x0
 
     # Time points for integration
-    time_points = np.linspace(0, time_horizon, num_steps)
+    time_points = np.linspace(0, time_horizon, nsteps)
 
     # Iterate over each time step
-    for i in range(1, num_steps):
+    for i in range(1, nsteps):
         # Define the function for integration (dynamics with control input)
         def dx_dt(t, x):
             return sys.A @ x + sys.B @ u(x, t)
