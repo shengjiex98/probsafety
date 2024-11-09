@@ -7,7 +7,7 @@ import numpy as np
 import control as ctrl
 
 import controlbenchmarks as cbench
-from probsafety import utils, models
+from probsafety import utils
 
 def load_timing_measurements(path: str) -> np.ndarray:
     """Load timing data from a JSON file."""
@@ -37,7 +37,6 @@ def main(config_path: str, output_path: str):
     mc = config['model']
     system_model = cbench.models.sys_variables(mc['name'])
     period = mc['period']
-    controller = models.DelayLQR(system_model, period) if mc['controller'] == 'delay_lqr' else models.PolePlacement(system_model, period)
 
     # Load timing measurements
     tc = config['timing']
@@ -58,7 +57,7 @@ def main(config_path: str, output_path: str):
 
     # Run experiment
     ec = config['experiment']
-    nominal_trajector = utils.nominal_trajectory(system_model, period, ec['time_horizon'], ec['x0'], u_generator=controllers.delay_lqr)
+    nominal_trajector = utils.nominal_trajectory(system_model, period, ec['time_horizon'], ec['x0'], u_generator=cbench.controllers.delay_lqr)
 
     # Save results
 
