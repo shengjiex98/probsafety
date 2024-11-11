@@ -4,8 +4,8 @@ seed = 42
 [model]
 name = "F1"
 controller = "delay_lqr"
+period = 0.02
 time_horizon = 2.0
-x0 = [1.0, 1.0]
 
 [timing]
 mode = "measurement"
@@ -21,6 +21,4 @@ pareto = {shape = 1.5, scale = 0.01}
 normal = {mean = 0.01, std = 0.01}
 
 [experiment]
-batch_size = 1_000
-quantile = 0.99
-alpha = 0.05
+batch_size = 300_000

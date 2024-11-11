@@ -29,11 +29,10 @@ def wrapper(
     else:
         raise ValueError(f"Invalid controller design: {controller_design}")
     
-    x_nom, u_nom = sim.nominal_trajectory(sys, period, time_horizon, x0, lambda x, t: -K_c @ x)
+    x_nom = sim.nominal_trajectory(sys, period, time_horizon, x0, lambda x, t: -K_c @ x)
 
     nsteps = math.ceil(time_horizon / period)
     actions = sim.generate_action_matrix(nsteps, hit_chance, batch_size)
-    print(actions)
     devs = sim.dsim_dev_batch(
         actions, 
         delayed_sys, 

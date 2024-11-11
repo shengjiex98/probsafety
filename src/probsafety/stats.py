@@ -2,7 +2,7 @@ from scipy.stats import binom
 
 def inverse_binomial_ci_pmf(success_rate, total_trials, alpha=0.05):
     # Initialize l and r with n * p
-    l = r = int(success_rate * total_trials)
+    m = l = r = int(success_rate * total_trials)
     target_prob = 1 - alpha
     current_prob = binom.pmf(l, total_trials, success_rate)
 
@@ -17,4 +17,4 @@ def inverse_binomial_ci_pmf(success_rate, total_trials, alpha=0.05):
         if l == 0 and r == total_trials:
             break
 
-    return l, r
+    return m, l, r

@@ -47,7 +47,7 @@ def nominal_trajectory(
         x_trajectory[i, :] = sol.y[:, -1]
 
     return x_trajectory @ sys.C.T
-    # return x_trajectory @ sys.C.T, np.fromiter(map(u, list(x_trajectory), list(time_points)), dtype=np.float64)
+    # return x_trajectory @ sys.C.T, np.array([u(x, t) for x, t in zip(x_trajectory, time_points)])
 
 def dsim(
         dsys: ctrl.StateSpace,

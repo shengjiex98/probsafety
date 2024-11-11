@@ -1,12 +1,14 @@
 # experiment1.py
+import os
 import toml
 import json
 import argparse
 import numpy as np
 import control as ctrl
+import pandas as pd
 
 import controlbenchmarks as cbench
-from probsafety import utils
+from probsafety import utils, stats
 
 def load_timing_measurements(path: str) -> np.ndarray:
     """Load timing data from a JSON file."""
@@ -24,7 +26,9 @@ def sample_synthetic_distribution(dist: str, params: dict, size: int) -> np.ndar
 
 def sample_periods(t: np.ndarray, step: float = 0.001, llimit: float = 0.005, rlimit: float = 0.2) -> np.ndarray:
     """Sample periods evenly between min/max of timing data."""
-    return np.arange(max(t.min(), llimit), min(t.max(), rlimit), step)
+    start = np.ceil(max(t.min(), llimit) / step) * step
+    stop = np.floor(min(t.max(), rlimit) / step) * step
+    return np.arange(start, stop, step)
 
 def empirical_cdf(data: np.ndarray, value: float) -> float:
     return np.sum(data <= value) / len(data)
@@ -37,10 +41,6 @@ def main(config_path: str, output_path: str):
     # Set seed for reproducibility
     seed = config.get('seed', 42)
     np.random.seed(seed)
-
-    # Initialize model
-    mc = config['model']
-    system_model = cbench.models.sys_variables(mc['name'])
 
     # Load timing measurements
     tc = config['timing']
@@ -60,10 +60,34 @@ def main(config_path: str, output_path: str):
     print(type(t), t.shape, np.sort(t))
 
     # Run experiment
+    mc = config['model']
     ec = config['experiment']
-    nominal_trajector = utils.nominal_trajectory(system_model, period, ec['time_horizon'], ec['x0'], u_generator=cbench.controllers.delay_lqr)
+
+    system_model = cbench.models.sys_variables[mc['name']]
+    m, l, r = stats.inverse_binomial_ci_pmf(ec['quantile'], ec['batch_size'], ec['alpha'])
+    periods = sample_periods(t)
+    hit_chances = np.array([empirical_cdf(t, p) for p in periods])
+
+    rows = []
+    for hit_chance, period in zip(hit_chances, periods):
+        if hit_chance < 0.1:
+            continue
+        devs = utils.wrapper(
+            ec['batch_size'],
+            system_model,
+            hit_chance,
+            period,
+            mc['controller'],
+            mc['x0'],
+            mc['time_horizon']
+        )
+        rows.append([hit_chance, period, devs[m], devs[l], devs[r]])
+    
+    df = pd.DataFrame(rows, columns=["hit_chance", "period", "p99", "p99_lower", "p99_upper"])
 
     # Save results
+    os.makedirs(output_path, exist_ok=True)
+    df.to_csv(os.path.join(output_path, "results.csv", index=False))
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()

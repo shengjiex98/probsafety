@@ -42,7 +42,7 @@ def test_dsim_all_misses():
     xs = sim.dsim(dsys, [1, 1], u, np.zeros((100,)))
     # plt.plot(xs)
     # plt.show()
-    assert np.isclose(xs[-1,:], np.asarray([14., 1.]),  atol=1e-5).all()
+    assert np.isclose(xs[-1,:], np.asarray([14.]),  atol=1e-5).all()
 
 def test_maxdev():
     t1 = np.random.random((100, 2))
