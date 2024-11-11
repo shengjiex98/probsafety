@@ -1,37 +1,19 @@
 # experiment1.py
 import os
 import toml
-import json
 import argparse
 import numpy as np
-import control as ctrl
 import pandas as pd
 
 import controlbenchmarks as cbench
-from probsafety import utils, stats
+import probsafety as ps
 
-def load_timing_measurements(path: str) -> np.ndarray:
-    """Load timing data from a JSON file."""
-    with open(path, 'r') as file:
-        return np.asarray(json.load(file)['t'])
-    
-def sample_synthetic_distribution(dist: str, params: dict, size: int) -> np.ndarray:
-    """Sample from a distribution as defined by the `params` table."""
-    # Define the mapping of distributions to their respective functions and arguments
-    distribution_mapping = {
-        "pareto": lambda params: (np.random.pareto(params["shape"], size) + 1) * params["scale"],
-        "normal": lambda params: np.random.normal(params["mean"], params["std"], size)
-    }
-    return distribution_mapping[dist](params)
-
-def sample_periods(t: np.ndarray, step: float = 0.001, llimit: float = 0.005, rlimit: float = 0.2) -> np.ndarray:
-    """Sample periods evenly between min/max of timing data."""
-    start = np.ceil(max(t.min(), llimit) / step) * step
-    stop = np.floor(min(t.max(), rlimit) / step) * step
-    return np.arange(start, stop, step)
-
-def empirical_cdf(data: np.ndarray, value: float) -> float:
-    return np.sum(data <= value) / len(data)
+from .utils import (
+    load_timing_measurements, 
+    sample_synthetic_distribution, 
+    sample_periods, 
+    empirical_cdf
+)
 
 def main(config_path: str, output_path: str):
     # Load configuration from toml
@@ -64,7 +46,7 @@ def main(config_path: str, output_path: str):
     ec = config['experiment']
 
     system_model = cbench.models.sys_variables[mc['name']]
-    m, l, r = stats.inverse_binomial_ci_pmf(ec['quantile'], ec['batch_size'], ec['alpha'])
+    m, l, r = ps.stats.inverse_binomial_ci_pmf(ec['quantile'], ec['batch_size'], ec['alpha'])
     periods = sample_periods(t)
     hit_chances = np.array([empirical_cdf(t, p) for p in periods])
 
@@ -72,7 +54,7 @@ def main(config_path: str, output_path: str):
     for hit_chance, period in zip(hit_chances, periods):
         if hit_chance < 0.1:
             continue
-        devs = utils.wrapper(
+        devs = ps.utils.wrapper(
             ec['batch_size'],
             system_model,
             hit_chance,
