@@ -1,43 +1,46 @@
+import math
 from typing import Callable
 
+from matplotlib import pyplot as plt
 import numpy as np
 import scipy.integrate as integrate
 import control as ctrl
 
+from . import sim
+from controlbenchmarks.controllers import delay_lqr, pole_place, augment
 
-def nominal_trajectory(
-        sys: ctrl.StateSpace,
-        period: float,
-        time_horizon: float,
+def wrapper(
+        batch_size: int,
+        sys: ctrl.StateSpace, 
+        hit_chance: float, 
+        period: float, 
+        controller_design: str,
         x0: np.ndarray,
-        u: Callable[[np.ndarray, float], np.ndarray]) -> np.ndarray:
-    """Compute the nominal trajectory of a system."""
+        time_horizon: float) -> np.ndarray:
+    """Wrapper function for obtaining random samples of deviations of the system."""
 
-    # Number of time steps
-    nsteps = int(time_horizon / period) + 1
+    delayed_sys = augment(ctrl.c2d(sys, period))
+    if controller_design == 'delay_lqr':
+        K_c = ctrl.lqr(sys, np.eye(sys.nstates), np.eye(sys.ninputs))[0]
+        K_d = delay_lqr(delayed_sys)
+    elif controller_design == 'pole_placement':
+        K_c = ctrl.place(sys.A, sys.B, np.full(sys.nstates, 0.9))
+        K_d = pole_place(delayed_sys)
+    else:
+        raise ValueError(f"Invalid controller design: {controller_design}")
+    
+    x_nom, u_nom = sim.nominal_trajectory(sys, period, time_horizon, x0, lambda x, t: -K_c @ x)
 
-    # Initialize trajectory array
-    x_trajectory = np.zeros((nsteps, sys.nstates))
-    x_trajectory[0, :] = x0
+    nsteps = math.ceil(time_horizon / period)
+    actions = sim.generate_action_matrix(nsteps, hit_chance, batch_size)
+    print(actions)
+    devs = sim.dsim_dev_batch(
+        actions, 
+        delayed_sys, 
+        np.pad(x0, (0, sys.ninputs)), 
+        lambda x, t: -K_d @ x,
+        x_nom
+    )
 
-    # Time points for integration
-    time_points = np.linspace(0, time_horizon, nsteps)
+    return devs
 
-    # Iterate over each time step
-    for i in range(1, nsteps):
-        # Define the function for integration (dynamics with control input)
-        def dx_dt(t, x):
-            return sys.A @ x + sys.B @ u(x, t)
-
-        # Integrate over one period
-        sol = integrate.solve_ivp(
-            dx_dt,
-            [time_points[i - 1], time_points[i]],
-            x_trajectory[i - 1, :],
-            t_eval=[time_points[i]],
-        )
-
-        # Store the state at the current time step
-        x_trajectory[i, :] = sol.y[:, -1]
-
-    return x_trajectory
