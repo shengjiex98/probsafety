@@ -27,6 +27,7 @@ def nominal_trajectory(
     # Initialize trajectory array
     x_trajectory = np.zeros((nperiods + 1, sys.nstates))
     x_trajectory[0, :] = x0
+    time_points = np.linspace(0, nperiods * period, nperiods + 1)
 
     # Iterate over each time step
     for i in range(1, nperiods):
@@ -37,15 +38,16 @@ def nominal_trajectory(
         # Integrate over one period
         sol = integrate.solve_ivp(
             dx_dt,
-            [period * (i - 1), period * i],
+            [time_points[i - 1], time_points[i]],
             x_trajectory[i - 1, :],
-            t_eval=[period * i],
+            t_eval=[time_points[i]],
         )
 
         # Store the state at the current time step
         x_trajectory[i, :] = sol.y[:, -1]
 
-    return x_trajectory
+    return x_trajectory @ sys.C.T
+    # return x_trajectory @ sys.C.T, np.fromiter(map(u, list(x_trajectory), list(time_points)), dtype=np.float64)
 
 def dsim(
         dsys: ctrl.StateSpace,
@@ -81,8 +83,8 @@ def dsim(
         x_trajectory[i + 1, :] = xi
         u_trajectory[i, :] = ui
 
-    return x_trajectory
-    # return x_trajectory, u_trajectory
+    return x_trajectory @ dsys.C.T
+    # return x_trajectory @ dsys.C.T, u_trajectory
 
 def maxdev(a: np.ndarray, b: np.ndarray, C: np.ndarray = None):
     """Calculate the maximum deviation between two trajectories. First dimension
@@ -103,7 +105,7 @@ def dsim_dev_batch(
     """Vectorized version for `dsim()`; max deviation of each trajectory is calculated
     in respect to the provided nominal trajectory."""
 
-    def action_dev(actions: np.ndarray):
-        return maxdev(dsim(dsys, x0, u, actions, miss_handling), x_nom, C = dsys.C)
+    def action_dev(action_vector: np.ndarray):
+        return maxdev(dsim(dsys, x0, u, action_vector, miss_handling), x_nom)
     
     return np.apply_along_axis(action_dev, axis=1, arr=actions)
