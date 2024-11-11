@@ -1,33 +1,51 @@
+import math
 from typing import Callable
 
 import numpy as np
 import control as ctrl
 import scipy.integrate as integrate
 
-from .utils import nominal_trajectory
-
-def generate_actions(n: int, p: float) -> np.ndarray[bool]:
+def generate_actions(n: int, hit_chance: float) -> np.ndarray[bool]:
     """Generate a vector of true/false values representing deadline hits/misses."""
-    return np.random.random(n) <= p
+    return np.random.random(n) <= hit_chance
 
-def generate_action_matrix(n: int, p: float, batch_size: int):
+def generate_action_matrix(n: int, hit_chance: float, batch_size: int):
     """Generate a Matrix of true/false values representing deadline hits/misses. Has dimension batch_size x n"""
-    return np.random.random((batch_size, n)) <= p
+    return np.random.random((batch_size, n)) <= hit_chance
 
-def dsimv_dev(
-        action_matrix: np.ndarray,
-        dsys: ctrl.StateSpace,
+def nominal_trajectory(
+        sys: ctrl.StateSpace,
+        period: float,
+        time_horizon: float,
         x0: np.ndarray,
-        u: Callable[[np.ndarray, float], np.ndarray],
-        x_nom: np.ndarray,
-        miss_handling: str = "hold") -> np.ndarray:
-    """Vectorized version for `dsim()`; max deviation of each trajectory is calculated
-    in respect to the provided nominal trajectory."""
+        u: Callable[[np.ndarray, float], np.ndarray]) -> np.ndarray:
+    """Compute the nominal trajectory of a system."""
 
-    def action_dev(actions: np.ndarray):
-        return maxdev(dsim(dsys, x0, u, actions, miss_handling), x_nom, C = dsys.C)
-    
-    return np.apply_along_axis(action_dev, axis=1, arr=action_matrix)
+    # Number of periods
+    nperiods = math.ceil(time_horizon / period)
+
+    # Initialize trajectory array
+    x_trajectory = np.zeros((nperiods + 1, sys.nstates))
+    x_trajectory[0, :] = x0
+
+    # Iterate over each time step
+    for i in range(1, nperiods):
+        # Define the function for integration (dynamics with control input)
+        def dx_dt(t, x):
+            return sys.A @ x + sys.B @ u(x, t)
+
+        # Integrate over one period
+        sol = integrate.solve_ivp(
+            dx_dt,
+            [period * (i - 1), period * i],
+            x_trajectory[i - 1, :],
+            t_eval=[period * i],
+        )
+
+        # Store the state at the current time step
+        x_trajectory[i, :] = sol.y[:, -1]
+
+    return x_trajectory
 
 def dsim(
         dsys: ctrl.StateSpace,
@@ -42,8 +60,6 @@ def dsim(
     x_trajectory = np.zeros((actions.size + 1, dsys.nstates))
     u_trajectory = np.zeros((actions.size + 1, dsys.ninputs))
     x_trajectory[0, :] = x0
-
-    np.hstack
     
     xi = x0
     ui = np.zeros((dsys.ninputs))
@@ -56,7 +72,7 @@ def dsim(
             # Deadline miss; set to zero
             ui = np.zeros((dsys.ninputs))
         elif miss_handling == "hold":
-            # Deadline miss; hold previous input
+            # Deadline miss; hold previous input (do nothing)
             pass
         else:
             raise ValueError('miss_handling must be either "zero" or "hold".')
@@ -73,44 +89,21 @@ def maxdev(a: np.ndarray, b: np.ndarray, C: np.ndarray = None):
     is time and second dimension is states."""
     assert a.shape == b.shape, f"Dimensions of the two trajectory must match. Got a: {a.shape} b: {b.shape}"
     if C is not None:
-        a = (C @ a.T).T
-        b = (C @ b.T).T
-    return np.sqrt( np.max( np.sum((a - b) ** 2, axis=1) ))
+        a = a @ C.T # (C @ a.T).T
+        b = b @ C.T # (C @ b.T).T
+    return np.max( np.linalg.norm((a - b), axis=1) )
 
-def nominal_trajectory(
-        sys: ctrl.StateSpace,
-        period: float,
-        time_horizon: float,
+def dsim_dev_batch(
+        actions: np.ndarray,
+        dsys: ctrl.StateSpace,
         x0: np.ndarray,
-        u: Callable[[np.ndarray, float], np.ndarray]) -> np.ndarray:
-    """Compute the nominal trajectory of a system."""
+        u: Callable[[np.ndarray, float], np.ndarray],
+        x_nom: np.ndarray,
+        miss_handling: str = "hold") -> np.ndarray:
+    """Vectorized version for `dsim()`; max deviation of each trajectory is calculated
+    in respect to the provided nominal trajectory."""
 
-    # Number of time steps
-    nsteps = int(time_horizon / period) + 1
-
-    # Initialize trajectory array
-    x_trajectory = np.zeros((nsteps, sys.nstates))
-    x_trajectory[0, :] = x0
-
-    # Time points for integration
-    time_points = np.linspace(0, time_horizon, nsteps)
-
-    # Iterate over each time step
-    for i in range(1, nsteps):
-        # Define the function for integration (dynamics with control input)
-        def dx_dt(t, x):
-            return sys.A @ x + sys.B @ u(x, t)
-
-        # Integrate over one period
-        sol = integrate.solve_ivp(
-            dx_dt,
-            [time_points[i - 1], time_points[i]],
-            x_trajectory[i - 1, :],
-            t_eval=[time_points[i]],
-        )
-
-        # Store the state at the current time step
-        x_trajectory[i, :] = sol.y[:, -1]
-
-    return x_trajectory
-
+    def action_dev(actions: np.ndarray):
+        return maxdev(dsim(dsys, x0, u, actions, miss_handling), x_nom, C = dsys.C)
+    
+    return np.apply_along_axis(action_dev, axis=1, arr=actions)
