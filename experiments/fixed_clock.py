@@ -87,7 +87,7 @@ def main(config_path: str, output_path: str):
 
     # Save results
     os.makedirs(output_path, exist_ok=True)
-    df.to_csv(os.path.join(output_path, "results.csv", index=False))
+    df.to_csv(os.path.join(output_path, "results.csv"), index=False)
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()

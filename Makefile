@@ -9,6 +9,7 @@ all: fixed_clock
 
 fixed_clock:
 	@echo "Running experiment 1..."
+	mkdir -p $(RESULTS_DIR)
 	cp $(CONFIG) $(RESULTS_DIR)
 	python $(SCRIPT) --config $(CONFIG) --output $(RESULTS_DIR)
 
