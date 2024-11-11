@@ -1,13 +1,13 @@
 # Makefile
 
 # Define the configuration file and output directory
-SCRIPT=experiments/exp1.py
-CONFIG=experiments/exp1.toml
-RESULTS_DIR=results/exp1_$(shell date +%Y%m%d_%H%M)
+SCRIPT=experiments/fixed_clock.py
+CONFIG=experiments/fixed_clock.toml
+RESULTS_DIR=results/fixed_clock_$(shell date +%Y%m%d_%H%M)
 
-all: experiment1
+all: fixed_clock
 
-experiment1:
+fixed_clock:
 	@echo "Running experiment 1..."
 	python $(SCRIPT) --config $(CONFIG) --output $(RESULTS_DIR)
 
@@ -15,4 +15,4 @@ experiment1:
 # 	@echo "Cleaning up..."
 # 	rm -rf results/*
 
-.PHONY: all experiment1 clean
+.PHONY: all fixed_clock clean

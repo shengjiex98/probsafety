@@ -2,7 +2,6 @@
 import toml
 import json
 import argparse
-import random
 import numpy as np
 import control as ctrl
 
@@ -23,6 +22,13 @@ def sample_synthetic_distribution(dist: str, params: dict, size: int) -> np.ndar
     }
     return distribution_mapping[dist](params)
 
+def sample_periods(t: np.ndarray, step: float = 0.001, llimit: float = 0.005, rlimit: float = 0.2) -> np.ndarray:
+    """Sample periods evenly between min/max of timing data."""
+    return np.arange(max(t.min(), llimit), min(t.max(), rlimit), step)
+
+def empirical_cdf(data: np.ndarray, value: float) -> float:
+    return np.sum(data <= value) / len(data)
+
 def main(config_path: str, output_path: str):
     # Load configuration from toml
     with open(config_path, "r") as file:
@@ -30,13 +36,11 @@ def main(config_path: str, output_path: str):
 
     # Set seed for reproducibility
     seed = config.get('seed', 42)
-    random.seed(seed)
     np.random.seed(seed)
 
     # Initialize model
     mc = config['model']
     system_model = cbench.models.sys_variables(mc['name'])
-    period = mc['period']
 
     # Load timing measurements
     tc = config['timing']

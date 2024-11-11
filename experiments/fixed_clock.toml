@@ -4,7 +4,6 @@ seed = 42
 [model]
 name = "F1"
 controller = "delay_lqr"
-period = 0.02
 time_horizon = 2.0
 
 [timing]
