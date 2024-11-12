@@ -1,0 +1,22 @@
+experiment_name = "Clockspeed Scan - CC - Huffbench"
+seed = 42
+
+[model]
+name = "CC"
+controller = "delay_lqr"
+time_horizon = 2.0
+x0 = [1.0, 1.0, 1.0]
+
+[timing]
+path = "data/huffbench.json"
+clock_low = 500_000
+clock_high = 10_000_001
+clock_step = 500_000
+period_low = 0.005
+period_high = 1.0
+period_step = 0.001
+
+[experiment]
+batch_size = 10_000
+quantile = 0.99
+alpha = 0.05

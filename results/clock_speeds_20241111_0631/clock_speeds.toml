@@ -1,0 +1,22 @@
+experiment_name = "Clock Speed Scan - F1 - Jpeg"
+seed = 42
+
+[model]
+name = "F1"
+controller = "delay_lqr"
+time_horizon = 2.0
+x0 = [1.0, 1.0]
+
+[timing]
+path = "data/picojpeg-emnist.json"
+clock_low = 100_000
+clock_high = 8_000_001
+clock_step = 100_000
+period_low = 0.005
+period_high = 0.4
+period_step = 0.001
+
+[experiment]
+batch_size = 30_000
+quantile = 0.99
+alpha = 0.05

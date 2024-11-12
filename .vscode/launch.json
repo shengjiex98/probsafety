@@ -1,0 +1,28 @@
+{
+    "configurations": [
+        {
+            "type": "debugpy",
+            "request": "launch",
+            "name": "Launch Experiment",
+            "program": "${workspaceFolder:probsafety}/experiments/${input:experimentName}.py",
+            "args": [
+                "--config",
+                "${workspaceFolder:probsafety}/experiments/${input:experimentName}.toml",
+                "--output",
+                "${workspaceFolder:probsafety}/results/${input:experimentName}_$(shell date +%Y%m%d_%H%M)/"
+            ]
+        }
+    ],
+    "inputs": [
+        {
+            "type": "pickString",
+            "id": "experimentName",
+            "description": "Select the experiment to run",
+            "options": [
+                "fixed_clock",
+                "clock_speeds",
+                "utilization"
+            ]
+        }
+    ]
+}

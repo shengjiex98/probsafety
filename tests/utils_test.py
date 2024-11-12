@@ -16,7 +16,7 @@ def test_wrapper():
     x0 = np.asarray([1., 1.])
     time_horizon = 2
 
-    devs = utils.wrapper(batch_size, sys, hit_chance, period, controller_design, x0, time_horizon)
+    devs = utils.dsim_wrapper(batch_size, sys, hit_chance, period, controller_design, x0, time_horizon)
 
     print(devs)
     assert devs is not None

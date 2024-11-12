@@ -6,9 +6,10 @@ import numpy as np
 import pandas as pd
 
 import controlbenchmarks as cbench
-import probsafety as ps
 
-from .utils import (
+from probsafety.stats import inverse_binomial_ci_pmf
+from probsafety.utils import (
+    dsim_wrapper,
     load_timing_measurements, 
     sample_synthetic_distribution, 
     sample_periods, 
@@ -46,7 +47,7 @@ def main(config_path: str, output_path: str):
     ec = config['experiment']
 
     system_model = cbench.models.sys_variables[mc['name']]
-    m, l, r = ps.stats.inverse_binomial_ci_pmf(ec['quantile'], ec['batch_size'], ec['alpha'])
+    m, l, r = inverse_binomial_ci_pmf(ec['quantile'], ec['batch_size'], ec['alpha'])
     periods = sample_periods(t)
     hit_chances = np.array([empirical_cdf(t, p) for p in periods])
 
@@ -54,7 +55,7 @@ def main(config_path: str, output_path: str):
     for hit_chance, period in zip(hit_chances, periods):
         if hit_chance < 0.1:
             continue
-        devs = ps.utils.wrapper(
+        devs = dsim_wrapper(
             ec['batch_size'],
             system_model,
             hit_chance,

@@ -1,20 +1,21 @@
 # Makefile
 
-# Define the configuration file and output directory
-SCRIPT=experiments/fixed_clock.py
-CONFIG=experiments/fixed_clock.toml
-RESULTS_DIR=results/fixed_clock_$(shell date +%Y%m%d_%H%M)/
+CONFIG_DIR=experiments
+RESULTS_DIR_BASE=results
 
-all: fixed_clock
+define RUN_EXPERIMENT
+	@RESULTS_DIR=$(RESULTS_DIR_BASE)/$(1)_$(shell date +%Y%m%d_%H%M)/ && \
+	mkdir -p $$RESULTS_DIR && \
+	cp $(CONFIG_DIR)/$(1).toml $$RESULTS_DIR && \
+	python $(CONFIG_DIR)/$(1).py --config $(CONFIG_DIR)/$(1).toml --output $$RESULTS_DIR
+endef
+
+all: fixed_clock clock_speeds
 
 fixed_clock:
-	@echo "Running experiment 1..."
-	mkdir -p $(RESULTS_DIR)
-	cp $(CONFIG) $(RESULTS_DIR)
-	python $(SCRIPT) --config $(CONFIG) --output $(RESULTS_DIR)
+	$(call RUN_EXPERIMENT,fixed_clock)
 
-# clean:
-# 	@echo "Cleaning up..."
-# 	rm -rf results/*
+clock_speeds:
+	$(call RUN_EXPERIMENT,clock_speeds)
 
-.PHONY: all fixed_clock clean
+.PHONY: all fixed_clock clock_speeds

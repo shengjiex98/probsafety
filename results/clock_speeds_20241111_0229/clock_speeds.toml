@@ -12,13 +12,9 @@ mode = "measurement"
 
 [timing.measurement]
 path = "data/picojpeg-emnist.json"
-cycles_per_second = 8_000_000
-
-[timing.synthetic]
-sample_size = 100_000
-distribution = "pareto"
-pareto = {shape = 1.5, scale = 0.01}
-normal = {mean = 0.01, std = 0.01}
+clock_low = 500_000
+clock_high = 8_100_000
+clock_step = 1000_000
 
 [experiment]
 batch_size = 1_000

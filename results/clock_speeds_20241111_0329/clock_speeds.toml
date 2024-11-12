@@ -8,20 +8,13 @@ time_horizon = 2.0
 x0 = [1.0, 1.0, 1.0]
 
 [timing]
-mode = "measurement"
+path = "data/huffbench.json"
+clock_low = 100_000
+clock_high = 8_000_001
+clock_step = 100_000
 period_low = 0.005
 period_high = 1.0
 period_step = 0.001
-
-[timing.measurement]
-path = "data/picojpeg-emnist.json"
-cycles_per_second = 8_000_000
-
-[timing.synthetic]
-sample_size = 100_000
-distribution = "pareto"
-pareto = {shape = 1.5, scale = 0.01}
-normal = {mean = 0.01, std = 0.01}
 
 [experiment]
 batch_size = 100_000
