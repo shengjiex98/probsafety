@@ -21,6 +21,6 @@ pareto = {shape = 1.5, scale = 0.01}
 normal = {mean = 0.01, std = 0.01}
 
 [experiment]
-batch_size = 1_000
+batch_size = 100_000
 quantile = 0.99
 alpha = 0.05
