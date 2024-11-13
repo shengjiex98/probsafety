@@ -43,7 +43,7 @@ def main(config_file: str, output_path: str):
         for hit_chance, period in zip(hit_chances, periods):
             if hit_chance < 0.1:
                 continue
-            devs = np.sort(dsim_wrapper(
+            devs = dsim_wrapper(
                 ec['batch_size'],
                 system_model,
                 hit_chance,
@@ -51,8 +51,8 @@ def main(config_file: str, output_path: str):
                 mc['controller'],
                 mc['x0'],
                 mc['time_horizon']
-            ))
-
+            )
+            devs.sort()
             rows.append([clock_speed, hit_chance, period, devs[m], devs[l], devs[r]])
             # if hit_chance == 1.0:
             #     break
