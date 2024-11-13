@@ -15,6 +15,9 @@ all: fixed_clock clock_speeds
 fixed_clock:
 	$(call RUN_EXPERIMENT,fixed_clock)
 
+fixed_period:
+	$(call RUN_EXPERIMENT,fixed_period)
+
 clock_speeds:
 	$(call RUN_EXPERIMENT,clock_speeds)
 
