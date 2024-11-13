@@ -9,6 +9,9 @@ x0 = [1.0, 1.0]
 
 [timing]
 mode = "measurement"
+period_low = 0.005
+period_high = 0.8
+period_step = 0.005
 
 [timing.measurement]
 path = "data/picojpeg-emnist.json"

@@ -48,7 +48,7 @@ def main(config_path: str, output_path: str):
 
     system_model = cbench.models.sys_variables[mc['name']]
     m, l, r = inverse_binomial_ci_pmf(ec['quantile'], ec['batch_size'], ec['alpha'])
-    periods = sample_periods(t)
+    periods = sample_periods(t, step=tc['period_step'], llimit=tc['period_low'], rlimit=tc['period_high'])
     hit_chances = np.array([empirical_cdf(t, p) for p in periods])
 
     rows = []
