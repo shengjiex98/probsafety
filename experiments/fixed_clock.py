@@ -64,6 +64,7 @@ def main(config_path: str, output_path: str):
             mc['x0'],
             mc['time_horizon']
         )
+        devs.sort()
         rows.append([hit_chance, period, devs[m], devs[l], devs[r]])
     
     df = pd.DataFrame(rows, columns=["hit_chance", "period", "p99", "p99_lower", "p99_upper"])
