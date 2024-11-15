@@ -9,6 +9,7 @@ def test_inverse_binomial_ci_pmf():
     alpha = 0.05
     for n, p in zip(ns, ps):
         m, l, r = stats.inverse_binomial_ci_pmf(p, n, alpha)
+        assert all(isinstance(x, int) for x in (m, l, r))
         assert l <= m <= r
         assert m == int(p * n)
         assert binom.cdf(l - 1, n, p) < alpha / 2

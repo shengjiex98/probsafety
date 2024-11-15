@@ -2,16 +2,17 @@ import math
 from typing import Callable
 
 import numpy as np
+from numpy.random import Generator
 import control as ctrl
 import scipy.integrate as integrate
 
-def generate_actions(n: int, hit_chance: float) -> np.ndarray[bool]:
+def generate_actions(n: int, hit_chance: float, rng: Generator) -> np.ndarray[bool]:
     """Generate a vector of true/false values representing deadline hits/misses."""
-    return np.random.random(n) <= hit_chance
+    return rng.random(n) <= hit_chance
 
-def generate_action_matrix(n: int, hit_chance: float, batch_size: int):
+def generate_action_matrix(n: int, hit_chance: float, batch_size: int, rng: Generator) -> np.ndarray[bool]:
     """Generate a Matrix of true/false values representing deadline hits/misses. Has dimension batch_size x n"""
-    return np.random.random((batch_size, n)) <= hit_chance
+    return rng.random((batch_size, n)) <= hit_chance
 
 def nominal_trajectory(
         sys: ctrl.StateSpace,
