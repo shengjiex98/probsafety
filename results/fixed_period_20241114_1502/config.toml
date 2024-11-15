@@ -1,0 +1,30 @@
+experiment_name = "Linear - EW - Pareto"
+seed = 42
+
+[model]
+name = "EW"
+controller = "delay_lqr"
+time_horizon = 0.05
+x0 = [1.0, 1.0]
+
+[timing]
+mode = "synthetic"
+clock_scale_low = 0.1
+clock_scale_high = 2.0
+clock_scale_step = 0.05
+periods = [0.001, 0.0015, 0.002, 0.003, 0.004]
+
+[timing.measurement]
+path = "data/picojpeg-emnist.json"
+cycles_per_second = 10_000_000
+
+[timing.synthetic]
+sample_size = 100_000
+distribution = "pareto"
+pareto = {shape = 1.5, scale = 0.001}
+normal = {mean = 0.01, std = 0.01}
+
+[experiment]
+batch_size = 30_000
+quantile = 0.99
+alpha = 0.05

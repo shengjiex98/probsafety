@@ -5,7 +5,7 @@ batch_size = 50_000
 quantile = 0.99
 alpha = 0.05
 
-mode = 'fixed_period'
+mode = 'fixed_clock'
 
 [fixed_clock]
 period_low = 0.01

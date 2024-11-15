@@ -1,22 +1,5 @@
 experiment_name = "Linear - F1 - Pareto"
-
 seed = 42
-batch_size = 50_000
-quantile = 0.99
-alpha = 0.05
-
-mode = 'fixed_period'
-
-[fixed_clock]
-period_low = 0.01
-period_high = 0.2
-period_step = 0.001
-
-[fixed_period]
-clock_scale_low = 0.1
-clock_scale_high = 2.0
-clock_scale_step = 0.025
-periods = [0.01, 0.015, 0.02, 0.025, 0.03, 0.04]
 
 [model]
 name = "F1"
@@ -26,6 +9,10 @@ x0 = [1.0, 1.0]
 
 [timing]
 mode = "synthetic"
+clock_scale_low = 0.1
+clock_scale_high = 2.0
+clock_scale_step = 0.025
+periods = [0.01, 0.015, 0.02, 0.025, 0.03, 0.04]
 
 [timing.measurement]
 path = "data/picojpeg-emnist.json"
@@ -36,3 +23,8 @@ sample_size = 100_000
 distribution = "pareto"
 pareto = {shape = 1.5, scale = 0.01}
 normal = {mean = 0.01, std = 0.01}
+
+[experiment]
+batch_size = 30_000
+quantile = 0.99
+alpha = 0.05
